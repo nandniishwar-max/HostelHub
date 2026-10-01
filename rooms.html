@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Available Rooms | HostelHub</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <header class="navbar">
+
+    <div class="logo">
+        🏠 HostelHub
+    </div>
+
+    <nav class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="rooms.html">Rooms</a>
+        <a href="index.html#facilities">Facilities</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#contact">Contact</a>
+    </nav>
+
+    <div class="nav-buttons">
+        <a href="login.html" class="btn btn-outline">Login</a>
+        <a href="register.html" class="btn btn-primary">Register</a>
+    </div>
+
+</header>
+    <main>
+
+        <section class="rooms-page">
+
+    <div class="rooms-page-header">
+
+        <div>
+            <p class="section-tag">
+                FIND YOUR SPACE
+            </p>
+
+            <h1>
+                Available Rooms
+            </h1>
+
+            <p>
+                Explore comfortable and affordable
+                accommodation near your college.
+            </p>
+        </div>
+
+        <div class="room-count">
+            <strong>6</strong>
+            <span>Rooms Available</span>
+        </div>
+
+    </div>
+    <div class="room-filters">
+
+    <div class="filter-group search-filter">
+
+        <label for="roomSearch">
+            Search
+        </label>
+
+        <input
+            type="text"
+            id="roomSearch"
+            placeholder="Search by room number..."
+        >
+
+    </div>
+
+
+    <div class="filter-group">
+
+        <label for="roomTypeFilter">
+            Room Type
+        </label>
+
+        <select id="roomTypeFilter">
+
+            <option value="all">
+                All Room Types
+            </option>
+
+            <option value="single">
+                Single Sharing
+            </option>
+
+            <option value="double">
+                Double Sharing
+            </option>
+
+            <option value="triple">
+                Triple Sharing
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="filter-group">
+
+        <label for="rentFilter">
+            Maximum Rent
+        </label>
+
+        <select id="rentFilter">
+
+            <option value="all">
+                Any Rent
+            </option>
+
+            <option value="5000">
+                Up to ₹5,000
+            </option>
+
+            <option value="6000">
+                Up to ₹6,000
+            </option>
+
+            <option value="7000">
+                Up to ₹7,000
+            </option>
+
+            <option value="8000">
+                Up to ₹8,000
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <button
+        type="button"
+        class="clear-filter"
+        onclick="clearRoomFilters()"
+    >
+        Clear Filters
+    </button>
+
+</div>
+<div class="rooms-grid" id="roomsGrid">
+
+    <!-- Room 101 -->
+
+    <div class="room-card" data-type="single" data-rent="6000">
+
+        <div class="room-image">
+
+            <img
+                src="assets/images/room1.jpg"
+                alt="Single sharing room"
+            >
+
+            <span class="room-status available">
+                Available
+            </span>
+
+        </div>
+
+        <div class="room-content">
+
+            <h3>Room 101</h3>
+
+            <p class="room-type">
+                Single Sharing • 1st Floor
+            </p>
+
+            <p class="room-rent">
+                ₹6,000
+                <span>/ month</span>
+            </p>
+
+            <div class="room-info">
+
+                <span>👤 1 Person</span>
+
+                <span>✓ Available</span>
+
+            </div>
+
+            <a
+                href="room-details.html?id=101"
+                class="room-button"
+            >
+                View Details
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- Room 102 -->
+
+    <div class="room-card" data-type="double" data-rent="5500">
+
+        <div class="room-image">
+
+            <img
+                src="assets/images/room2.jpg"
+                alt="Double sharing room"
+            >
+
+            <span class="room-status available">
+                Available
+            </span>
+
+        </div>
+
+        <div class="room-content">
+
+            <h3>Room 102</h3>
+
+            <p class="room-type">
+                Double Sharing • 1st Floor
+            </p>
+
+            <p class="room-rent">
+                ₹5,500
+                <span>/ month</span>
+            </p>
+
+            <div class="room-info">
+
+                <span>👤 1/2 Occupied</span>
+
+                <span>✓ Available</span>
+
+            </div>
+
+            <a
+                href="room-details.html?id=102"
+                class="room-button"
+            >
+                View Details
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- Room 201 -->
+
+    <div class="room-card" data-type="triple" data-rent="4500">
+
+        <div class="room-image">
+
+            <img
+                src="assets/images/room3.jpg"
+                alt="Triple sharing room"
+            >
+
+            <span class="room-status available">
+                Available
+            </span>
+
+        </div>
+
+        <div class="room-content">
+
+            <h3>Room 201</h3>
+
+            <p class="room-type">
+                Triple Sharing • 2nd Floor
+            </p>
+
+            <p class="room-rent">
+                ₹4,500
+                <span>/ month</span>
+            </p>
+
+            <div class="room-info">
+
+                <span>👤 2/3 Occupied</span>
+
+                <span>✓ Available</span>
+
+            </div>
+
+            <a
+                href="room-details.html?id=201"
+                class="room-button"
+            >
+                View Details
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- Room 205 -->
+
+    <div class="room-card" data-type="triple" data-rent="4500">
+
+        <div class="room-image">
+
+            <img
+                src="assets/images/room3.jpg"
+                alt="Triple sharing room"
+            >
+
+            <span class="room-status available">
+                Available
+            </span>
+
+        </div>
+
+        <div class="room-content">
+
+            <h3>Room 205</h3>
+
+            <p class="room-type">
+                Triple Sharing • 2nd Floor
+            </p>
+
+            <p class="room-rent">
+                ₹4,500
+                <span>/ month</span>
+            </p>
+
+            <div class="room-info">
+
+                <span>👤 2/3 Occupied</span>
+
+                <span>✓ Available</span>
+
+            </div>
+
+            <a
+                href="room-details.html?id=205"
+                class="room-button"
+            >
+                View Details
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- Room 301 -->
+
+    <div class="room-card" data-type="single" data-rent="6500">
+
+        <div class="room-image">
+
+            <img
+                src="assets/images/room1.jpg"
+                alt="Single sharing room"
+            >
+
+            <span class="room-status available">
+                Available
+            </span>
+
+        </div>
+
+        <div class="room-content">
+
+            <h3>Room 301</h3>
+
+            <p class="room-type">
+                Single Sharing • 3rd Floor
+            </p>
+
+            <p class="room-rent">
+                ₹6,500
+                <span>/ month</span>
+            </p>
+
+            <div class="room-info">
+
+                <span>👤 1 Person</span>
+
+                <span>✓ Available</span>
+
+            </div>
+
+            <a
+                href="room-details.html?id=301"
+                class="room-button"
+            >
+                View Details
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- Room 308 -->
+
+    <div class="room-card" data-type="double" data-rent="5500">
+
+        <div class="room-image">
+
+            <img
+                src="assets/images/room2.jpg"
+                alt="Double sharing room"
+            >
+
+            <span class="room-status partial">
+                Partial
+            </span>
+
+        </div>
+
+        <div class="room-content">
+
+            <h3>Room 308</h3>
+
+            <p class="room-type">
+                Double Sharing • 3rd Floor
+            </p>
+
+            <p class="room-rent">
+                ₹5,500
+                <span>/ month</span>
+            </p>
+
+            <div class="room-info">
+
+                <span>👤 2/2 Occupied</span>
+
+                <span>⚠ Partial</span>
+
+            </div>
+
+            <a
+                href="room-details.html?id=308"
+                class="room-button"
+            >
+                View Details
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+<div id="noRoomsMessage" class="no-rooms-message">
+
+    <div class="no-rooms-icon">
+        🔍
+    </div>
+
+    <h3>
+        No Rooms Found
+    </h3>
+
+    <p>
+        Try changing your search or filters.
+    </p>
+
+</div>
+</section>
+
+    </main>
+
+    <script src="js/app.js"></script>
+
+</body>
+
+</html>
