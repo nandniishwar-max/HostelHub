@@ -354,6 +354,7 @@ if (applicationForm) {
             id: Date.now(),
             roomId: applyRoomId,
             roomName: document.getElementById("applyRoomName").textContent,
+            status: "Pending",
             fullName: document.getElementById("fullName").value,
             email: document.getElementById("email").value,
             phone: document.getElementById("phone").value,
@@ -388,60 +389,319 @@ const applicationList =
 
 if (applicationList) {
 
-    const savedApplications =
+    const statusFilter =
+        document.getElementById("statusFilter");
+    function getStatusBadge(status) {
+
+        const currentStatus = status || "Pending";
+
+        return `
+            <span class="status-badge status-${currentStatus.toLowerCase()}">
+                ${currentStatus}
+            </span>
+        `;
+
+    }
+    function displayApplications(filter = "All") {
+
+        const savedApplications =
+            JSON.parse(
+                localStorage.getItem("hostelApplications")
+            ) || [];
+
+        const filteredApplications =
+            filter === "All"
+                ? savedApplications
+                : savedApplications.filter(
+                    application =>
+                        (application.status || "Pending") === filter
+                );
+
+        if (filteredApplications.length > 0) {
+
+            applicationList.innerHTML =
+                filteredApplications.map(application => `
+
+                    <div class="selected-room-card">
+
+                        <h2>Application Details</h2>
+
+                        <p>
+                            <strong>Room:</strong>
+                            ${application.roomName}
+                        </p>
+
+                        <p>
+                            <strong>Status:</strong>
+                            ${getStatusBadge(application.status)}
+                        </p>
+
+                        <p>
+                            <strong>Name:</strong>
+                            ${application.fullName}
+                        </p>
+
+                        <p>
+                            <strong>Email:</strong>
+                            ${application.email}
+                        </p>
+
+                        <p>
+                            <strong>Phone:</strong>
+                            ${application.phone}
+                        </p>
+
+                        <p>
+                            <strong>College:</strong>
+                            ${application.college}
+                        </p>
+
+                        <p>
+                            <strong>Address:</strong>
+                            ${application.address}
+                        </p>
+
+                        <p>
+                            <strong>Submitted:</strong>
+                            ${new Date(application.submittedAt).toLocaleString("en-IN")}
+                        </p>
+                        <div class="application-actions">
+
+                            <button
+                                onclick="updateApplicationStatus(${application.id}, 'Approved')"
+                            >
+                                Approve
+                            </button>
+
+                            <button
+                                onclick="updateApplicationStatus(${application.id}, 'Rejected')"
+                            >
+                                Reject
+                            </button>
+
+                            <button
+                                onclick="deleteApplication(${application.id})"
+                            >
+                                Delete
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                `).join("");
+
+        } else {
+
+            applicationList.innerHTML = `
+                <p>No applications found.</p>
+            `;
+
+        }
+
+    }
+
+    displayApplications();
+
+    if (statusFilter) {
+
+        statusFilter.addEventListener(
+            "change",
+            function () {
+
+                displayApplications(
+                    statusFilter.value
+                );
+
+            }
+        );
+
+    }
+
+}
+
+// ========================================
+// UPDATE APPLICATION STATUS
+// ========================================
+
+function updateApplicationStatus(applicationId, newStatus) {
+
+    const applications =
         JSON.parse(
             localStorage.getItem("hostelApplications")
         ) || [];
 
-    if (savedApplications.length > 0) {
+    const application =
+        applications.find(
+            app => app.id === applicationId
+        );
 
-        applicationList.innerHTML =
-            savedApplications.map(application => `
+    if (application) {
 
-                <div class="selected-room-card">
+        application.status = newStatus;
 
-                    <h2>Application Details</h2>
+        localStorage.setItem(
+            "hostelApplications",
+            JSON.stringify(applications)
+        );
 
-                    <p>
-                        <strong>Room:</strong>
-                        ${application.roomName}
-                    </p>
+        location.reload();
 
-                    <p>
-                        <strong>Name:</strong>
-                        ${application.fullName}
-                    </p>
+    }
 
-                    <p>
-                        <strong>Email:</strong>
-                        ${application.email}
-                    </p>
+}
+// ========================================
+// DELETE APPLICATION
+// ========================================
 
-                    <p>
-                        <strong>Phone:</strong>
-                        ${application.phone}
-                    </p>
+function deleteApplication(applicationId) {
 
-                    <p>
-                        <strong>College:</strong>
-                        ${application.college}
-                    </p>
+    const confirmDelete =
+        confirm("Are you sure you want to delete this application?");
 
-                    <p>
-                        <strong>Address:</strong>
-                        ${application.address}
-                    </p>
+    if (!confirmDelete) {
+        return;
+    }
 
-                </div>
+    const applications =
+        JSON.parse(
+            localStorage.getItem("hostelApplications")
+        ) || [];
 
-            `).join("");
+    const updatedApplications =
+        applications.filter(
+            application => application.id !== applicationId
+        );
+
+    localStorage.setItem(
+        "hostelApplications",
+        JSON.stringify(updatedApplications)
+    );
+
+    location.reload();
+
+}
+// ========================================
+// ADMIN DASHBOARD
+// ========================================
+
+const totalApplications =
+    document.getElementById("totalApplications");
+
+if (totalApplications) {
+
+    const applications =
+        JSON.parse(
+            localStorage.getItem("hostelApplications")
+        ) || [];
+
+    const pendingCount =
+        applications.filter(
+            application =>
+                (application.status || "Pending") === "Pending"
+        ).length;
+
+    const approvedCount =
+        applications.filter(
+            application =>
+                application.status === "Approved"
+        ).length;
+
+    const rejectedCount =
+        applications.filter(
+            application =>
+                application.status === "Rejected"
+        ).length;
+
+    totalApplications.textContent =
+        applications.length;
+
+    document.getElementById(
+        "pendingApplications"
+    ).textContent = pendingCount;
+
+    document.getElementById(
+        "approvedApplications"
+    ).textContent = approvedCount;
+
+    document.getElementById(
+        "rejectedApplications"
+    ).textContent = rejectedCount;
+
+}
+// ========================================
+// DASHBOARD APPLICATION LIST
+// ========================================
+
+const dashboardApplications =
+    document.getElementById("dashboardApplications");
+
+if (dashboardApplications) {
+
+    const applications =
+        JSON.parse(
+            localStorage.getItem("hostelApplications")
+        ) || [];
+
+    if (applications.length > 0) {
+
+        dashboardApplications.innerHTML = `
+            <div class="selected-room-card">
+
+                <h2>Recent Applications</h2>
+
+                ${applications.map(application => `
+
+                    <div class="dashboard-application">
+
+                        <p>
+                            <strong>Room:</strong>
+                            ${application.roomName}
+                        </p>
+
+                        <p>
+                            <strong>Name:</strong>
+                            ${application.fullName}
+                        </p>
+
+                       <p>
+                            <strong>Status:</strong>
+                            ${getStatusBadge(application.status)}
+                        </p>
+
+                    </div>
+
+                `).join("")}
+
+            </div>
+        `;
 
     } else {
 
-        applicationList.innerHTML = `
-            <p>No applications found.</p>
+        dashboardApplications.innerHTML = `
+            <div class="selected-room-card">
+                <p>No applications found.</p>
+            </div>
         `;
 
     }
+
+}
+// ========================================
+// CLEAR ALL APPLICATIONS
+// ========================================
+
+function clearAllApplications() {
+
+    const confirmClear =
+        confirm("Are you sure you want to clear all applications?");
+
+    if (!confirmClear) {
+        return;
+    }
+
+    localStorage.removeItem("hostelApplications");
+
+    location.reload();
 
 }
