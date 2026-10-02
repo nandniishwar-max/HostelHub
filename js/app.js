@@ -292,8 +292,156 @@ if (selectedRoom &&
 
 if (applyRoomBtn) {
 
-    applyRoomBtn.href =
-        `apply.html?id=${roomId}`;
+   applyRoomBtn.href =
+    `apply.html?id=${roomId}`;
 
 }
+}
+// ========================================
+// ROOM APPLICATION PAGE
+// ========================================
+
+const applyRoomId =
+    new URLSearchParams(window.location.search).get("id");
+
+if (
+    applyRoomId &&
+    document.getElementById("applyRoomName")
+) {
+
+    const applyRoom =
+        roomData[applyRoomId];
+
+    if (applyRoom) {
+
+        document.getElementById(
+            "applyRoomName"
+        ).textContent =
+            applyRoom.name;
+
+        document.getElementById(
+            "applyRoomType"
+        ).textContent =
+            applyRoom.type;
+
+        document.getElementById(
+            "applyRoomRent"
+        ).textContent =
+            `₹${applyRoom.rent.toLocaleString("en-IN")} / month`;
+
+        document.getElementById(
+            "applyRoomFloor"
+        ).textContent =
+            applyRoom.floor;
+
+    }
+
+}
+// ========================================
+// SAVE ROOM APPLICATION
+// ========================================
+
+const applicationForm =
+    document.getElementById("roomApplicationForm");
+
+if (applicationForm) {
+
+    applicationForm.addEventListener("submit", function (event) {
+
+        event.preventDefault();
+
+        const application = {
+            id: Date.now(),
+            roomId: applyRoomId,
+            roomName: document.getElementById("applyRoomName").textContent,
+            fullName: document.getElementById("fullName").value,
+            email: document.getElementById("email").value,
+            phone: document.getElementById("phone").value,
+            college: document.getElementById("college").value,
+            address: document.getElementById("address").value,
+            submittedAt: new Date().toISOString()
+        };
+
+        const existingApplications =
+            JSON.parse(
+                localStorage.getItem("hostelApplications")
+            ) || [];
+
+        existingApplications.push(application);
+
+        localStorage.setItem(
+            "hostelApplications",
+            JSON.stringify(existingApplications)
+        );
+
+        alert("Application submitted successfully!");
+
+    });
+
+}
+// ========================================
+// DISPLAY SAVED APPLICATIONS
+// ========================================
+
+const applicationList =
+    document.getElementById("applicationList");
+
+if (applicationList) {
+
+    const savedApplications =
+        JSON.parse(
+            localStorage.getItem("hostelApplications")
+        ) || [];
+
+    if (savedApplications.length > 0) {
+
+        applicationList.innerHTML =
+            savedApplications.map(application => `
+
+                <div class="selected-room-card">
+
+                    <h2>Application Details</h2>
+
+                    <p>
+                        <strong>Room:</strong>
+                        ${application.roomName}
+                    </p>
+
+                    <p>
+                        <strong>Name:</strong>
+                        ${application.fullName}
+                    </p>
+
+                    <p>
+                        <strong>Email:</strong>
+                        ${application.email}
+                    </p>
+
+                    <p>
+                        <strong>Phone:</strong>
+                        ${application.phone}
+                    </p>
+
+                    <p>
+                        <strong>College:</strong>
+                        ${application.college}
+                    </p>
+
+                    <p>
+                        <strong>Address:</strong>
+                        ${application.address}
+                    </p>
+
+                </div>
+
+            `).join("");
+
+    } else {
+
+        applicationList.innerHTML = `
+            <p>No applications found.</p>
+        `;
+
+    }
+
 }
