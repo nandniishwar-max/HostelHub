@@ -26,6 +26,8 @@
             <a href="contact.html">Contact</a>
             <a href="applications.html">Applications</a>
             <a href="dashboard.html">Dashboard</a>
+            <span id="loginStatus"></span>
+            <a href="#" onclick="logoutUser()">Logout</a>
         </nav>
 
         <div class="nav-buttons">
@@ -46,13 +48,8 @@
     <div class="application-container">
 
         <div class="application-header">
-
-            <h1>HostelHub Dashboard</h1>
-
-            <p>
-                Overview of hostel room applications.
-            </p>
-
+            <h1>Welcome, <span id="dashboardUserName">User</span>!</h1>
+            <p>Overview of hostel room applications.</p>
         </div>
 
         <div class="dashboard-stats">

@@ -705,3 +705,328 @@ function clearAllApplications() {
     location.reload();
 
 }
+// ========================================
+// CONTACT FORM
+// ========================================
+
+const contactForm =
+    document.getElementById("contactForm");
+
+if (contactForm) {
+
+    contactForm.addEventListener("submit", function (event) {
+
+        event.preventDefault();
+
+        alert("Your message has been sent successfully!");
+
+        contactForm.reset();
+
+    });
+
+}
+// ========================================
+// HOME PAGE ROOM SEARCH
+// ========================================
+
+function searchCollege() {
+
+    const college =
+        document.getElementById("collegeSearch").value.trim();
+
+    const roomType =
+        document.getElementById("roomTypeSearch").value;
+
+    let url = "rooms.html?";
+
+    if (college) {
+        url += `college=${encodeURIComponent(college)}&`;
+    }
+
+    if (roomType !== "all") {
+        url += `type=${encodeURIComponent(roomType)}`;
+    }
+
+    window.location.href = url;
+
+}
+// ========================================
+// FILTER ROOMS FROM HOME SEARCH
+// ========================================
+
+const roomCards =
+    document.querySelectorAll(".room-card");
+
+if (roomCards.length > 0) {
+
+    const params =
+        new URLSearchParams(window.location.search);
+
+    const selectedType =
+        params.get("type");
+
+    if (selectedType) {
+
+        roomCards.forEach(card => {
+
+            const roomType =
+                card.dataset.roomType;
+
+            if (roomType !== selectedType) {
+                card.style.display = "none";
+            }
+
+        });
+
+    }
+
+}
+// ========================================
+// USE CURRENT LOCATION
+// ========================================
+
+function useCurrentLocation() {
+
+    if (!navigator.geolocation) {
+
+        alert("Geolocation is not supported by your browser.");
+
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+
+        function (position) {
+
+            const latitude =
+                position.coords.latitude;
+
+            const longitude =
+                position.coords.longitude;
+
+            alert(
+                `Your location:\nLatitude: ${latitude}\nLongitude: ${longitude}`
+            );
+
+        },
+
+        function () {
+
+            alert(
+                "Unable to access your location. Please allow location permission."
+            );
+
+        }
+
+    );
+
+}
+// ========================================
+// USER REGISTRATION
+// ========================================
+
+const registerForm =
+    document.getElementById("registerForm");
+
+if (registerForm) {
+
+    registerForm.addEventListener("submit", function (event) {
+
+        event.preventDefault();
+
+        const name =
+            document.getElementById("registerName").value.trim();
+
+        const email =
+            document.getElementById("registerEmail").value.trim();
+
+        const password =
+            document.getElementById("registerPassword").value;
+        const confirmPassword =
+            document.getElementById("confirmPassword").value;
+
+        if (password !== confirmPassword) {
+
+            alert("Passwords do not match.");
+
+            return;
+        }
+        const user = {
+            name: name,
+            email: email,
+            password: password
+        };
+
+        localStorage.setItem(
+            "hostelUser",
+            JSON.stringify(user)
+        );
+
+        alert("Registration successful!");
+
+        window.location.href = "login.html";
+
+    });
+
+}
+// ========================================
+// USER LOGIN
+// ========================================
+
+const loginForm =
+    document.getElementById("loginForm");
+
+if (loginForm) {
+
+    loginForm.addEventListener("submit", function (event) {
+
+        event.preventDefault();
+
+        const email =
+            document.getElementById("loginEmail").value.trim();
+
+        const password =
+            document.getElementById("loginPassword").value;
+
+        const savedUser =
+            JSON.parse(
+                localStorage.getItem("hostelUser")
+            );
+
+        if (!savedUser) {
+
+            alert("No account found. Please register first.");
+
+            return;
+        }
+
+        if (
+            email === savedUser.email &&
+            password === savedUser.password
+        ) {
+
+            localStorage.setItem(
+                "hostelLoggedIn",
+                "true"
+            );
+
+            alert("Login successful!");
+
+            window.location.href = "dashboard.html";
+
+        } else {
+
+            alert("Invalid email or password.");
+
+        }
+
+    });
+
+}
+// ========================================
+// USER LOGOUT
+// ========================================
+
+function logoutUser() {
+
+    localStorage.removeItem("hostelLoggedIn");
+
+    alert("You have been logged out.");
+
+    window.location.href = "login.html";
+}
+// ========================================
+// DASHBOARD LOGIN PROTECTION
+// ========================================
+
+if (window.location.pathname.endsWith("dashboard.html")) {
+
+    const isLoggedIn =
+        localStorage.getItem("hostelLoggedIn");
+
+    if (isLoggedIn !== "true") {
+
+        alert("Please login to access the dashboard.");
+
+        window.location.href = "login.html";
+    }
+}
+// ========================================
+// APPLICATIONS LOGIN PROTECTION
+// ========================================
+
+if (window.location.pathname.endsWith("applications.html")) {
+
+    const isLoggedIn =
+        localStorage.getItem("hostelLoggedIn");
+
+    if (isLoggedIn !== "true") {
+
+        alert("Please login to view applications.");
+
+        window.location.href = "login.html";
+    }
+}
+// ========================================
+// APPLY PAGE LOGIN PROTECTION
+// ========================================
+
+if (window.location.pathname.endsWith("apply.html")) {
+
+    const isLoggedIn =
+        localStorage.getItem("hostelLoggedIn");
+
+    if (isLoggedIn !== "true") {
+
+        alert("Please login to apply for a room.");
+
+        window.location.href = "login.html";
+    }
+}
+// ========================================
+// DISPLAY LOGGED-IN USER
+// ========================================
+
+const dashboardUserName =
+    document.getElementById("dashboardUserName");
+
+if (dashboardUserName) {
+
+    const savedUser =
+        JSON.parse(
+            localStorage.getItem("hostelUser")
+        );
+
+    if (savedUser) {
+        dashboardUserName.textContent =
+            savedUser.name;
+    }
+}
+// ========================================
+// LOGIN STATUS
+// ========================================
+
+const loginStatus =
+    document.getElementById("loginStatus");
+
+if (loginStatus) {
+
+    const isLoggedIn =
+        localStorage.getItem("hostelLoggedIn");
+
+    if (isLoggedIn === "true") {
+        loginStatus.textContent = "Logged In";
+    } else {
+        loginStatus.textContent = "Not Logged In";
+    }
+}
+// ========================================
+// FORGOT PASSWORD
+// ========================================
+
+function forgotPassword() {
+
+    alert(
+        "Password recovery will be added in a future version."
+    );
+}

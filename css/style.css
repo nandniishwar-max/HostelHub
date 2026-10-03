@@ -1655,3 +1655,22 @@ p {
     color: #666;
     line-height: 1.6;
 }
+.auth-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.auth-link a {
+    text-decoration: none;
+    font-weight: 600;
+}
+.forgot-password {
+    text-align: right;
+    margin: 10px 0 20px;
+}
+
+.forgot-password a {
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+}
