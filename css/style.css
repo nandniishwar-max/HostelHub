@@ -1674,3 +1674,73 @@ p {
     font-size: 14px;
     font-weight: 600;
 }
+
+/* =========================
+   NAVBAR USER STATE
+========================= */
+
+.nav-user {
+    font-size: 14px;
+    font-weight: 600;
+    color: #146fc1;
+}
+
+/* =========================
+   ALERT / INLINE MESSAGES
+========================= */
+
+#messageContainer {
+    margin-bottom: 14px;
+}
+
+.alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.alert-success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.alert-info {
+    background: #e0f2fe;
+    color: #075985;
+    border: 1px solid #bae6fd;
+}
+
+.alert-icon {
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* =========================
+   ROOM STATUS BADGES
+========================= */
+
+.status-available { color: #20a66a; }
+.status-full      { color: #ef4444; }
+.status-partial   { color: #f59e0b; }
+
+.room-availability.available { background: #d1fae5; color: #065f46; }
+.room-availability.full      { background: #fee2e2; color: #991b1b; }
+.room-availability.partial   { background: #fef3c7; color: #92400e; }
