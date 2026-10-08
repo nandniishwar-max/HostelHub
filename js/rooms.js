@@ -1,779 +1,930 @@
+// ============================================================
+// HostelHub - PG Listings Page
+// ============================================================
+
 document.addEventListener("DOMContentLoaded", function () {
 
-
-    // =====================================================
-    // GET COLLEGE FROM URL
-    // =====================================================
-
-    const params =
-        new URLSearchParams(window.location.search);
-
-    const collegeId =
-        params.get("collegeId");
-
-
-
-    // =====================================================
-    // GET DATA FROM LOCAL STORAGE
-    // =====================================================
-
-    const pgs =
-        JSON.parse(
-            localStorage.getItem("pgs")
-        ) || [];
-
+    const params = new URLSearchParams(window.location.search);
+    const collegeId = params.get("collegeId");
+    const roomType = params.get("type");
 
     const colleges =
-        JSON.parse(
-            localStorage.getItem("colleges")
-        ) || [];
+        JSON.parse(localStorage.getItem("colleges")) || [];
 
+    const allPGs =
+        JSON.parse(localStorage.getItem("pgs")) || [];
 
+    let selectedCollege = null;
 
-    // =====================================================
-    // FIND SELECTED COLLEGE
-    // =====================================================
+    // ------------------------------------------------------------
+    // Find selected college if collegeId exists
+    // ------------------------------------------------------------
 
-    const selectedCollege =
-        colleges.find(function (college) {
-
+    if (collegeId) {
+        selectedCollege = colleges.find(function (college) {
             return college.id === collegeId;
-
         });
-
-
-
-    // =====================================================
-    // GET HTML ELEMENTS
-    // =====================================================
-
-    const roomsGrid =
-        document.getElementById("roomsGrid");
-
-
-    const resultsTitle =
-        document.getElementById("resultsTitle");
-
-
-    const resultsSubtitle =
-        document.getElementById("resultsSubtitle");
-
-
-    const availableRoomCount =
-        document.getElementById(
-            "availableRoomCount"
-        );
-
-
-    const roomSearch =
-        document.getElementById(
-            "roomSearch"
-        );
-
-
-    const roomTypeFilter =
-        document.getElementById(
-            "roomTypeFilter"
-        );
-
-
-    const rentFilter =
-        document.getElementById(
-            "rentFilter"
-        );
-
-
-    const sortFilter =
-        document.getElementById(
-            "sortFilter"
-        );
-
-
-    const clearFiltersBtn =
-        document.getElementById(
-            "clearFiltersBtn"
-        );
-
-
-
-    // =====================================================
-    // CHECK WHETHER COLLEGE EXISTS
-    // =====================================================
-
-    if (!selectedCollege) {
-
-
-        resultsTitle.textContent =
-            "College Not Found";
-
-
-        resultsSubtitle.textContent =
-            "Please search for a supported college.";
-
-
-        availableRoomCount.textContent =
-            "0";
-
-
-        roomsGrid.innerHTML = `
-
-            <div class="no-results">
-
-                <h2>
-                    No college selected
-                </h2>
-
-                <p>
-                    Please go back and search for your college.
-                </p>
-
-                <a href="index.html">
-                    Back to Home
-                </a>
-
-            </div>
-
-        `;
-
-
-        return;
-
     }
 
+    // ------------------------------------------------------------
+    // IMPORTANT:
+    // If no collegeId is present, show ALL PGs.
+    // ------------------------------------------------------------
 
+    let filteredPGs = allPGs;
 
-    // =====================================================
-    // UPDATE PAGE HEADER
-    // =====================================================
+    if (selectedCollege) {
 
-    resultsTitle.textContent =
-        `PGs Near ${selectedCollege.name}`;
+        filteredPGs = allPGs.filter(function (pg) {
 
+            // Primary match: collegeId
+            if (pg.collegeId &&
+                String(pg.collegeId) === String(selectedCollege.id)) {
+                return true;
+            }
 
-    resultsSubtitle.textContent =
-        `Find student accommodation near ${selectedCollege.name}, ${selectedCollege.area}.`;
+            // Secondary match: college name
+            if (pg.college &&
+                selectedCollege.name &&
+                pg.college
+                    .toLowerCase()
+                    .includes(selectedCollege.name.toLowerCase())) {
+                return true;
+            }
 
+            return false;
+        });
+    }
 
+    // ------------------------------------------------------------
+    // Page heading
+    // ------------------------------------------------------------
 
-    // =====================================================
-    // GET PGs FOR SELECTED COLLEGE
-    // =====================================================
+    updatePageHeading(selectedCollege, collegeId);
 
-    const collegePGs =
-        pgs.filter(function (pg) {
+    // ------------------------------------------------------------
+    // Room type from URL
+    // ------------------------------------------------------------
 
-            return (
-                pg.college ===
-                selectedCollege.name
+    if (roomType && roomType !== "all") {
+
+        filteredPGs = filteredPGs.filter(function (pg) {
+
+            if (!pg.sharing) {
+                return false;
+            }
+
+            return Object.prototype.hasOwnProperty.call(
+                pg.sharing,
+                roomType
             );
-
         });
-
-
-
-    // =====================================================
-    // CALCULATE MINIMUM PG PRICE
-    // =====================================================
-
-    function getMinimumPrice(pg) {
-
-        const prices =
-            Object.values(pg.sharing);
-
-        return Math.min(...prices);
-
     }
 
+    // ------------------------------------------------------------
+    // Get elements
+    // ------------------------------------------------------------
 
-
-    // =====================================================
-    // FORMAT SHARING TYPE
-    // =====================================================
-
-    function formatSharing(type) {
-
-
-        const names = {
-
-            single: "Single",
-
-            double: "Double",
-
-            triple: "Triple",
-
-            four: "4 Sharing"
-
-        };
-
-
-        return (
-            names[type] ||
-            type
+    const searchInput =
+        document.getElementById("searchInput") ||
+        document.getElementById("pgSearch") ||
+        document.querySelector(
+            'input[placeholder*="PG name"], input[placeholder*="PG Name"], input[placeholder*="area"]'
         );
 
+    const sharingSelect =
+        document.getElementById("sharingFilter") ||
+        document.getElementById("roomTypeFilter");
+
+    const rentSelect =
+        document.getElementById("rentFilter") ||
+        document.getElementById("maxRent");
+
+    const genderRadios =
+        document.querySelectorAll('input[name="gender"]');
+
+    const sortSelect =
+        document.getElementById("sortFilter") ||
+        document.getElementById("sortBy");
+
+    const distanceSelect =
+        document.getElementById("distanceFilter");
+
+    const clearButton =
+        document.getElementById("clearFilters") ||
+        document.querySelector(
+            'button[onclick*="clear"], button.clear-filters'
+        );
+
+    const pgContainer =
+        document.getElementById("pgContainer") ||
+        document.getElementById("roomsContainer") ||
+        document.getElementById("pgListings") ||
+        document.querySelector(".rooms-grid") ||
+        document.querySelector(".pg-grid") ||
+        document.querySelector(".room-grid");
+
+    // ------------------------------------------------------------
+    // Amenity checkboxes
+    // ------------------------------------------------------------
+
+    const amenityCheckboxes =
+        document.querySelectorAll(
+            'input[type="checkbox"][data-amenity]'
+        );
+
+    // ------------------------------------------------------------
+    // Render
+    // ------------------------------------------------------------
+
+    function renderPGs(list) {
+
+        if (!pgContainer) {
+            console.error(
+                "HostelHub: PG container not found."
+            );
+            return;
+        }
+
+        if (!list || list.length === 0) {
+
+            pgContainer.innerHTML = `
+                <div class="empty-state" style="
+                    grid-column: 1 / -1;
+                    text-align: center;
+                    padding: 50px 20px;
+                ">
+                    <h2>No PGs found</h2>
+                    <p>
+                        Try changing your filters or search for another area.
+                    </p>
+                </div>
+            `;
+
+            updateResultCount(0);
+            return;
+        }
+
+        pgContainer.innerHTML = list.map(function (pg) {
+
+            const rent = getLowestRent(pg);
+
+            const image =
+                pg.image ||
+                "assets/images/room1.jpg";
+
+            const amenities =
+                getAmenities(pg);
+
+            const gender =
+                pg.gender || "Co-ed";
+
+            const rating =
+                pg.rating !== undefined &&
+                pg.rating !== null
+                    ? `⭐ ${pg.rating}`
+                    : "";
+
+            const distance =
+                pg.distanceKm !== undefined &&
+                pg.distanceKm !== null
+                    ? `${pg.distanceKm} km from college`
+                    : "";
+
+            const college =
+                pg.college || "";
+
+            const location =
+                pg.area ||
+                pg.city ||
+                "";
+
+            return `
+                <div class="room-card pg-card">
+
+                    <div class="room-image-container">
+
+                        <img
+                            src="${image}"
+                            alt="${escapeHTML(pg.name || "PG")}"
+                            class="room-image"
+                            onerror="this.src='assets/images/room1.jpg'"
+                        >
+
+                        <span class="room-status available">
+                            Available
+                        </span>
+
+                    </div>
+
+                    <div class="room-card-content">
+
+                        <h3>
+                            ${escapeHTML(pg.name || "PG")}
+                        </h3>
+
+                        <p class="room-location">
+                            📍 ${escapeHTML(location)}
+                        </p>
+
+                        ${
+                            college
+                                ? `
+                                <p class="room-college">
+                                    🎓 ${escapeHTML(college)}
+                                </p>
+                                `
+                                : ""
+                        }
+
+                        <div class="room-info">
+
+                            <span>
+                                👥 ${escapeHTML(gender)}
+                            </span>
+
+                            ${
+                                distance
+                                    ? `
+                                    <span>
+                                        📏 ${distance}
+                                    </span>
+                                    `
+                                    : ""
+                            }
+
+                            ${
+                                rating
+                                    ? `
+                                    <span>
+                                        ${rating}
+                                    </span>
+                                    `
+                                    : ""
+                            }
+
+                        </div>
+
+                        <div class="room-price">
+                            <strong>
+                                ₹${formatNumber(rent)}
+                            </strong>
+
+                            <span>/month onwards</span>
+                        </div>
+
+                        <div class="amenities">
+
+                            ${amenities
+                                .slice(0, 5)
+                                .map(function (amenity) {
+                                    return `
+                                        <span class="amenity-tag">
+                                            ${escapeHTML(amenity)}
+                                        </span>
+                                    `;
+                                })
+                                .join("")}
+
+                        </div>
+
+                        <a
+                            href="room-details.html?pgId=${encodeURIComponent(pg.id)}"
+                            class="btn btn-primary"
+                        >
+                            View Details
+                        </a>
+
+                    </div>
+
+                </div>
+            `;
+
+        }).join("");
+
+        updateResultCount(list.length);
     }
 
-
-
-    // =====================================================
-    // APPLY FILTERS + SORT
-    // =====================================================
+    // ------------------------------------------------------------
+    // Apply all filters
+    // ------------------------------------------------------------
 
     function applyFilters() {
 
+        let results = filteredPGs.slice();
 
-        // -------------------------------------------------
-        // GET CURRENT FILTER VALUES
-        // -------------------------------------------------
+        // --------------------------------------------------------
+        // Search
+        // --------------------------------------------------------
 
-        const searchText =
-            roomSearch.value
-                .trim()
-                .toLowerCase();
+        const searchValue =
+            searchInput
+                ? searchInput.value.trim().toLowerCase()
+                : "";
 
+        if (searchValue) {
 
-        const selectedSharing =
-            roomTypeFilter.value;
+            results = results.filter(function (pg) {
 
+                const searchableText = [
 
-        const maximumRent =
-            rentFilter.value;
+                    pg.name,
+                    pg.area,
+                    pg.city,
+                    pg.college,
+                    pg.gender
 
+                ]
+                    .filter(Boolean)
+                    .join(" ")
+                    .toLowerCase();
 
-        const sortOption =
-            sortFilter.value;
-
-
-
-        // -------------------------------------------------
-        // FILTER PGs
-        // -------------------------------------------------
-
-        let filteredPGs =
-            collegePGs.filter(function (pg) {
-
-
-                // -----------------------------------------
-                // SEARCH
-                // -----------------------------------------
-
-                const matchesSearch =
-
-                    !searchText ||
-
-                    pg.name
-                        .toLowerCase()
-                        .includes(searchText) ||
-
-                    pg.area
-                        .toLowerCase()
-                        .includes(searchText);
-
-
-
-                // -----------------------------------------
-                // SHARING
-                // -----------------------------------------
-
-                const matchesSharing =
-
-                    selectedSharing === "all" ||
-
-                    pg.sharing[
-                        selectedSharing
-                    ] !== undefined;
-
-
-
-                // -----------------------------------------
-                // RENT
-                // -----------------------------------------
-
-                let matchesRent = true;
-
-
-                if (
-                    maximumRent !==
-                    "all"
-                ) {
-
-
-                    const minimumPrice =
-                        getMinimumPrice(pg);
-
-
-                    matchesRent =
-                        minimumPrice <=
-                        Number(maximumRent);
-
-                }
-
-
-
-                // -----------------------------------------
-                // RETURN FILTER RESULT
-                // -----------------------------------------
-
-                return (
-
-                    matchesSearch &&
-
-                    matchesSharing &&
-
-                    matchesRent
-
-                );
-
+                return searchableText.includes(searchValue);
             });
+        }
 
+        // --------------------------------------------------------
+        // Sharing
+        // --------------------------------------------------------
 
-
-        // =================================================
-        // SORT RESULTS
-        // =================================================
-
-        filteredPGs.sort(function (a, b) {
-
-
-            // ---------------------------------------------
-            // PRICE LOW → HIGH
-            // ---------------------------------------------
-
-            if (
-                sortOption ===
-                "price-low"
-            ) {
-
-                return (
-                    getMinimumPrice(a) -
-                    getMinimumPrice(b)
-                );
-
-            }
-
-
-
-            // ---------------------------------------------
-            // PRICE HIGH → LOW
-            // ---------------------------------------------
-
-            if (
-                sortOption ===
-                "price-high"
-            ) {
-
-                return (
-                    getMinimumPrice(b) -
-                    getMinimumPrice(a)
-                );
-
-            }
-
-
-
-            // ---------------------------------------------
-            // DISTANCE
-            // ---------------------------------------------
-
-            if (
-                sortOption ===
-                "distance"
-            ) {
-
-                return (
-                    Number(a.distanceKm) -
-                    Number(b.distanceKm)
-                );
-
-            }
-
-
-
-            // ---------------------------------------------
-            // RATING
-            // ---------------------------------------------
-
-            if (
-                sortOption ===
-                "rating"
-            ) {
-
-                return (
-                    Number(b.rating) -
-                    Number(a.rating)
-                );
-
-            }
-
-
-
-            // ---------------------------------------------
-            // RECOMMENDED
-            // ---------------------------------------------
-
-            return 0;
-
-        });
-
-
-
-        // =================================================
-        // UPDATE RESULT COUNT
-        // =================================================
-
-        availableRoomCount.textContent =
-            filteredPGs.length;
-
-
-
-        // =================================================
-        // DISPLAY RESULTS
-        // =================================================
-
-        renderPGs(filteredPGs);
-
-    }
-
-
-
-    // =====================================================
-    // RENDER PG CARDS
-    // =====================================================
-
-    function renderPGs(pgList) {
-
-
-        // Clear previous cards
-
-        roomsGrid.innerHTML = "";
-
-
-
-        // =================================================
-        // NO RESULTS
-        // =================================================
+        const sharingValue =
+            sharingSelect
+                ? sharingSelect.value
+                : "all";
 
         if (
-            pgList.length ===
-            0
+            sharingValue &&
+            sharingValue !== "all"
         ) {
 
+            results = results.filter(function (pg) {
 
-            roomsGrid.innerHTML = `
+                if (!pg.sharing) {
+                    return false;
+                }
 
-                <div class="no-results">
-
-                    <div class="no-rooms-icon">
-                        🔍
-                    </div>
-
-
-                    <h2>
-                        No PGs Found
-                    </h2>
-
-
-                    <p>
-                        Try changing your search or filters.
-                    </p>
-
-                </div>
-
-            `;
-
-
-            return;
-
+                return Object.prototype.hasOwnProperty.call(
+                    pg.sharing,
+                    sharingValue
+                );
+            });
         }
 
+        // --------------------------------------------------------
+        // Maximum rent
+        // --------------------------------------------------------
 
+        const rentValue =
+            rentSelect
+                ? rentSelect.value
+                : "all";
 
-        // =================================================
-        // CREATE EACH PG CARD
-        // =================================================
+        if (
+            rentValue &&
+            rentValue !== "all"
+        ) {
 
-        pgList.forEach(function (pg) {
+            const maxRent =
+                Number(rentValue);
 
+            results = results.filter(function (pg) {
 
-            // ---------------------------------------------
-            // PRICE
-            // ---------------------------------------------
+                return getLowestRent(pg) <= maxRent;
+            });
+        }
 
-            const minimumPrice =
-                getMinimumPrice(pg);
+        // --------------------------------------------------------
+        // Gender
+        // --------------------------------------------------------
 
+        let selectedGender = "all";
 
+        genderRadios.forEach(function (radio) {
 
-            // ---------------------------------------------
-            // SHARING TYPES
-            // ---------------------------------------------
-
-            const sharingTypes =
-                Object.keys(
-                    pg.sharing
-                )
-                .map(function (type) {
-
-                    return formatSharing(type);
-
-                })
-                .join(" • ");
-
-
-
-            // ---------------------------------------------
-            // AMENITIES
-            // ---------------------------------------------
-
-            const amenities =
-                pg.amenities
-                    .slice(0, 4)
-                    .map(function (amenity) {
-
-                        return `
-
-                            <span class="amenity">
-
-                                ✓ ${amenity}
-
-                            </span>
-
-                        `;
-
-                    })
-                    .join("");
-
-
-
-            // ---------------------------------------------
-            // CREATE CARD
-            // ---------------------------------------------
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-
-            card.className =
-                "room-card pg-card";
-
-
-
-            // ---------------------------------------------
-            // CARD HTML
-            // ---------------------------------------------
-
-            card.innerHTML = `
-
-                <div class="room-image">
-
-                    <img
-                        src="${pg.image}"
-                        alt="${pg.name}"
-                        onerror="
-                            this.src='assets/images/room1.jpg'
-                        "
-                    >
-
-                </div>
-
-
-                <div class="room-content">
-
-
-                    <h3>
-                        ${pg.name}
-                    </h3>
-
-
-                    <p class="pg-location">
-                        📍 ${pg.area}
-                    </p>
-
-
-                    <p class="pg-distance">
-                        🚶 ${pg.distanceKm} km
-                        from your college
-                    </p>
-
-
-                    <div class="pg-price">
-
-                        ₹${minimumPrice.toLocaleString("en-IN")}
-
-                        <span>
-                            / month onwards
-                        </span>
-
-                    </div>
-
-
-                    <p class="pg-sharing">
-
-                        👥 ${sharingTypes}
-
-                    </p>
-
-
-                    <div class="pg-amenities">
-
-                        ${amenities}
-
-                    </div>
-
-
-                    <div class="pg-bottom">
-
-
-                        <span class="pg-rating">
-
-                            ⭐ ${pg.rating}
-
-                        </span>
-
-
-                        <button
-                            class="view-pg-btn"
-                            data-pg-id="${pg.id}"
-                        >
-
-                            View Details
-
-                        </button>
-
-
-                    </div>
-
-                </div>
-
-            `;
-
-
-
-            // Add card to grid
-
-            roomsGrid.appendChild(card);
+            if (radio.checked) {
+                selectedGender = radio.value;
+            }
 
         });
 
+        if (
+            selectedGender &&
+            selectedGender !== "all"
+        ) {
 
+            results = results.filter(function (pg) {
 
-        // =================================================
-        // VIEW DETAILS BUTTONS
-        // =================================================
+                const pgGender =
+                    String(pg.gender || "")
+                        .toLowerCase();
 
-        document
-            .querySelectorAll(
-                ".view-pg-btn"
-            )
-            .forEach(function (button) {
+                return (
+                    pgGender ===
+                    selectedGender.toLowerCase()
+                );
+            });
+        }
 
+        // --------------------------------------------------------
+        // Distance
+        // --------------------------------------------------------
 
-                button.addEventListener(
-                    "click",
-                    function () {
+        const distanceValue =
+            distanceSelect
+                ? distanceSelect.value
+                : "all";
 
+        if (
+            distanceValue &&
+            distanceValue !== "all"
+        ) {
 
-                        const pgId =
-                            this.dataset.pgId;
+            const maxDistance =
+                Number(distanceValue);
 
+            results = results.filter(function (pg) {
 
-                        window.location.href =
-                            `room-details.html?pgId=${encodeURIComponent(pgId)}`;
+                if (
+                    pg.distanceKm === undefined ||
+                    pg.distanceKm === null
+                ) {
+                    return false;
+                }
+
+                return (
+                    Number(pg.distanceKm) <=
+                    maxDistance
+                );
+            });
+        }
+
+        // --------------------------------------------------------
+        // Amenities
+        // --------------------------------------------------------
+
+        const selectedAmenities = [];
+
+        amenityCheckboxes.forEach(function (checkbox) {
+
+            if (checkbox.checked) {
+
+                const amenity =
+                    checkbox.dataset.amenity;
+
+                if (amenity) {
+                    selectedAmenities.push(
+                        amenity.toLowerCase()
+                    );
+                }
+            }
+
+        });
+
+        if (selectedAmenities.length > 0) {
+
+            results = results.filter(function (pg) {
+
+                const pgAmenities =
+                    getAmenities(pg)
+                        .map(function (item) {
+                            return item.toLowerCase();
+                        });
+
+                return selectedAmenities.every(
+                    function (requiredAmenity) {
+
+                        return pgAmenities.some(
+                            function (availableAmenity) {
+
+                                return availableAmenity
+                                    .includes(requiredAmenity) ||
+                                    requiredAmenity
+                                        .includes(availableAmenity);
+                            }
+                        );
 
                     }
-
                 );
-
             });
+        }
 
+        // --------------------------------------------------------
+        // Sorting
+        // --------------------------------------------------------
+
+        const sortValue =
+            sortSelect
+                ? sortSelect.value
+                : "recommended";
+
+        results.sort(function (a, b) {
+
+            if (sortValue === "price-low") {
+
+                return (
+                    getLowestRent(a) -
+                    getLowestRent(b)
+                );
+            }
+
+            if (sortValue === "price-high") {
+
+                return (
+                    getLowestRent(b) -
+                    getLowestRent(a)
+                );
+            }
+
+            if (sortValue === "distance") {
+
+                return (
+                    Number(a.distanceKm || 999) -
+                    Number(b.distanceKm || 999)
+                );
+            }
+
+            if (sortValue === "rating") {
+
+                return (
+                    Number(b.rating || 0) -
+                    Number(a.rating || 0)
+                );
+            }
+
+            return 0;
+        });
+
+        renderPGs(results);
     }
 
+    // ------------------------------------------------------------
+    // Event listeners
+    // ------------------------------------------------------------
+
+    if (searchInput) {
+
+        searchInput.addEventListener(
+            "input",
+            applyFilters
+        );
+    }
+
+    if (sharingSelect) {
+
+        sharingSelect.addEventListener(
+            "change",
+            applyFilters
+        );
+    }
+
+    if (rentSelect) {
+
+        rentSelect.addEventListener(
+            "change",
+            applyFilters
+        );
+    }
+
+    if (sortSelect) {
+
+        sortSelect.addEventListener(
+            "change",
+            applyFilters
+        );
+    }
+
+    if (distanceSelect) {
+
+        distanceSelect.addEventListener(
+            "change",
+            applyFilters
+        );
+    }
+
+    genderRadios.forEach(function (radio) {
+
+        radio.addEventListener(
+            "change",
+            applyFilters
+        );
+
+    });
+
+    amenityCheckboxes.forEach(function (checkbox) {
+
+        checkbox.addEventListener(
+            "change",
+            applyFilters
+        );
+
+    });
+
+    // ------------------------------------------------------------
+    // Clear filters
+    // ------------------------------------------------------------
+
+    if (clearButton) {
+
+        clearButton.addEventListener(
+            "click",
+            function () {
+
+                if (searchInput) {
+                    searchInput.value = "";
+                }
+
+                if (sharingSelect) {
+                    sharingSelect.value = "all";
+                }
+
+                if (rentSelect) {
+                    rentSelect.value = "all";
+                }
+
+                if (sortSelect) {
+                    sortSelect.value = "recommended";
+                }
+
+                if (distanceSelect) {
+                    distanceSelect.value = "all";
+                }
+
+                genderRadios.forEach(
+                    function (radio) {
+
+                        radio.checked =
+                            radio.value === "all";
+                    }
+                );
+
+                amenityCheckboxes.forEach(
+                    function (checkbox) {
+
+                        checkbox.checked = false;
+
+                    }
+                );
+
+                applyFilters();
+            }
+        );
+    }
+
+    // ------------------------------------------------------------
+    // Initial render
+    // ------------------------------------------------------------
+
+    renderPGs(filteredPGs);
+
+});
 
 
-    // =====================================================
-    // SEARCH EVENT
-    // =====================================================
+// ============================================================
+// Helper Functions
+// ============================================================
 
-    roomSearch.addEventListener(
-        "input",
-        applyFilters
+
+// ------------------------------------------------------------
+// Page heading
+// ------------------------------------------------------------
+
+function updatePageHeading(
+    selectedCollege,
+    collegeId
+) {
+
+    const heading =
+        document.querySelector("h1");
+
+    const subtitle =
+        document.querySelector(".page-subtitle") ||
+        document.querySelector(".subtitle");
+
+    if (!heading) {
+        return;
+    }
+
+    if (selectedCollege) {
+
+        heading.textContent =
+            "PGs Near " +
+            selectedCollege.name;
+
+        if (subtitle) {
+
+            subtitle.textContent =
+                "Find student accommodation near your college.";
+        }
+
+        return;
+    }
+
+    if (!collegeId) {
+
+        heading.textContent =
+            "Find Your Perfect PG";
+
+        if (subtitle) {
+
+            subtitle.textContent =
+                "Browse student hostels and PGs across Navi Mumbai and Mumbai.";
+        }
+
+        return;
+    }
+
+    heading.textContent =
+        "College Not Found";
+
+    if (subtitle) {
+
+        subtitle.textContent =
+            "Showing all available PGs instead.";
+    }
+}
+
+
+// ------------------------------------------------------------
+// Lowest rent
+// ------------------------------------------------------------
+
+function getLowestRent(pg) {
+
+    if (!pg || !pg.sharing) {
+        return 0;
+    }
+
+    const rents =
+        Object.values(pg.sharing)
+            .map(Number)
+            .filter(function (rent) {
+
+                return (
+                    !isNaN(rent) &&
+                    rent > 0
+                );
+            });
+
+    if (rents.length === 0) {
+        return 0;
+    }
+
+    return Math.min.apply(
+        null,
+        rents
     );
+}
 
 
+// ------------------------------------------------------------
+// Get amenities
+// ------------------------------------------------------------
 
-    // =====================================================
-    // SHARING FILTER EVENT
-    // =====================================================
+function getAmenities(pg) {
 
-    roomTypeFilter.addEventListener(
-        "change",
-        applyFilters
-    );
+    const amenities = [];
+
+    if (Array.isArray(pg.amenities)) {
+
+        pg.amenities.forEach(
+            function (amenity) {
+
+                if (
+                    amenity &&
+                    !amenities.includes(amenity)
+                ) {
+                    amenities.push(amenity);
+                }
+
+            }
+        );
+    }
+
+    if (pg.wifiAvailable === true) {
+        addAmenity(amenities, "Wi-Fi");
+    }
+
+    if (pg.foodAvailable === true) {
+        addAmenity(amenities, "Food");
+    }
+
+    if (pg.acAvailable === true) {
+        addAmenity(amenities, "AC");
+    }
+
+    if (pg.laundry === true) {
+        addAmenity(amenities, "Laundry");
+    }
+
+    if (pg.parking === true) {
+        addAmenity(amenities, "Parking");
+    }
+
+    if (pg.cctv === true) {
+        addAmenity(amenities, "CCTV");
+    }
+
+    if (pg.attachedBathroom === true) {
+        addAmenity(
+            amenities,
+            "Attached Bathroom"
+        );
+    }
+
+    if (pg.security === true) {
+        addAmenity(
+            amenities,
+            "Security"
+        );
+    }
+
+    if (pg.powerBackup === true) {
+        addAmenity(
+            amenities,
+            "Power Backup"
+        );
+    }
+
+    if (pg.housekeeping === true) {
+        addAmenity(
+            amenities,
+            "Housekeeping"
+        );
+    }
+
+    return amenities;
+}
 
 
+// ------------------------------------------------------------
+// Add amenity without duplicates
+// ------------------------------------------------------------
 
-    // =====================================================
-    // RENT FILTER EVENT
-    // =====================================================
+function addAmenity(
+    list,
+    value
+) {
 
-    rentFilter.addEventListener(
-        "change",
-        applyFilters
-    );
+    const exists =
+        list.some(function (item) {
 
+            return item.toLowerCase() ===
+                value.toLowerCase();
 
+        });
 
-    // =====================================================
-    // SORT EVENT
-    // =====================================================
-
-    sortFilter.addEventListener(
-        "change",
-        applyFilters
-    );
-
-
-
-    // =====================================================
-    // CLEAR ALL FILTERS
-    // =====================================================
-
-    clearFiltersBtn.addEventListener(
-        "click",
-        function () {
+    if (!exists) {
+        list.push(value);
+    }
+}
 
 
-            roomSearch.value =
-                "";
+// ------------------------------------------------------------
+// Format number
+// ------------------------------------------------------------
+
+function formatNumber(number) {
+
+    return Number(number || 0)
+        .toLocaleString("en-IN");
+}
 
 
-            roomTypeFilter.value =
-                "all";
+// ------------------------------------------------------------
+// Safe HTML
+// ------------------------------------------------------------
+
+function escapeHTML(value) {
+
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
 
-            rentFilter.value =
-                "all";
+// ------------------------------------------------------------
+// Result count
+// ------------------------------------------------------------
 
+function updateResultCount(count) {
 
-            sortFilter.value =
-                "default";
+    const elements = [
+        document.getElementById("resultCount"),
+        document.getElementById("pgCount"),
+        document.querySelector(".result-count")
+    ];
 
+    elements.forEach(function (element) {
 
-            applyFilters();
+        if (element) {
+
+            element.textContent =
+                `${count} PG${count === 1 ? "" : "s"} found`;
 
         }
 
-    );
-
-
-
-    // =====================================================
-    // INITIAL DISPLAY
-    // =====================================================
-
-    applyFilters();
-
-
-});
+    });
+}
