@@ -18,23 +18,41 @@ function getData(key, defaultValue) {
 // Seed all default data into localStorage.
 // Pass force = true to wipe & re-seed (demo reset).
 function initializeData(force) {
+
     var keys = [
+
         ["users",              defaultUsers],
+
         ["rooms",              defaultRooms],
+
         ["payments",           defaultPayments],
+
         ["complaints",         defaultComplaints],
+
         ["announcements",      defaultAnnouncements],
+
         ["hostelApplications", defaultApplications],
+
         ["colleges",           defaultColleges],
-        ["nearbyHostels",      defaultNearbyHostels]
+
+        ["nearbyHostels",      defaultNearbyHostels],
+
+        ["pgs",                defaultPGs]
+
     ];
 
     keys.forEach(function (pair) {
-        var key          = pair[0];
+
+        var key = pair[0];
+
         var defaultValue = pair[1];
+
         if (force || localStorage.getItem(key) === null) {
+
             saveData(key, defaultValue);
+
         }
+
     });
 }
 

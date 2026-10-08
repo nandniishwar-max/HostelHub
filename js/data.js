@@ -218,14 +218,34 @@ const defaultApplications = [
 
 // ── Location data (colleges + nearby PGs/hostels) ──────────
 const defaultColleges = [
-    { name: "KJ Somaiya College",   lat: 19.0726, lng: 72.9002 },
-    { name: "SIES College",         lat: 19.0496, lng: 73.0699 },
-    { name: "Mithibai College",     lat: 19.1005, lng: 72.8369 },
-    { name: "Jai Hind College",     lat: 18.9640, lng: 72.8290 },
-    { name: "St. Xavier's College", lat: 18.9430, lng: 72.8296 },
-    { name: "Ruia College",         lat: 19.0217, lng: 72.8562 },
-    { name: "Sydenham College",     lat: 18.9375, lng: 72.8364 },
-    { name: "Wilson College",       lat: 18.9598, lng: 72.8204 }
+
+    {
+        id: "dmce",
+        name: "Datta Meghe College of Engineering",
+        city: "Navi Mumbai",
+        area: "Airoli",
+        lat: 19.1600,
+        lng: 72.9958
+    },
+
+    {
+        id: "sies-nerul",
+        name: "SIES College of Arts, Science and Commerce",
+        city: "Navi Mumbai",
+        area: "Nerul",
+        lat: 19.0428,
+        lng: 73.0233
+    },
+
+    {
+        id: "kj-somaiya",
+        name: "KJ Somaiya College of Engineering",
+        city: "Mumbai",
+        area: "Vidyavihar",
+        lat: 19.0723,
+        lng: 72.9002
+    }
+
 ];
 
 const defaultNearbyHostels = [
@@ -237,4 +257,309 @@ const defaultNearbyHostels = [
     { id: 6, name: "Scholar's Inn",     lat: 19.0480, lng: 73.0680, rent: 6000, type: "Hostel", gender: "Boys",  distance: "0.6 km", facilities: ["Wi-Fi", "Study Room"] },
     { id: 7, name: "Lakeside Hostel",   lat: 19.1010, lng: 72.8350, rent: 9000, type: "PG",     gender: "Girls", distance: "0.3 km", facilities: ["Wi-Fi", "Meals", "Laundry", "Gym"] },
     { id: 8, name: "Campus View PG",    lat: 19.1020, lng: 72.8390, rent: 8500, type: "PG",     gender: "Mixed", distance: "0.5 km", facilities: ["Wi-Fi", "Meals", "Security"] }
+];
+// ============================================================
+// HostelHub - PG Discovery Data
+// ============================================================
+
+const defaultPGs = [
+
+    {
+        id: "airoli-001",
+
+        name: "Chavan PG",
+
+        city: "Navi Mumbai",
+        area: "Sector 2, Airoli",
+
+        college: "Datta Meghe College of Engineering",
+
+        distanceKm: 0.2,
+
+        gender: "Girls",
+
+        sharing: {
+            double: 6500,
+            triple: 5500,
+            four: 4500
+        },
+
+        amenities: [
+            "Wi-Fi",
+            "CCTV",
+            "Food",
+            "Housekeeping"
+        ],
+
+        foodAvailable: true,
+        acAvailable: false,
+        attachedBathroom: false,
+        laundry: false,
+        parking: false,
+
+        rating: 4.2,
+
+        image: "assets/images/room1.jpg",
+
+        source: "MagicBricks",
+
+        lastVerified: "2026-10-08"
+    },
+
+
+    {
+        id: "airoli-002",
+
+        name: "Airoli Student PG",
+
+        city: "Navi Mumbai",
+        area: "Airoli",
+
+        college: "Datta Meghe College of Engineering",
+
+        distanceKm: 0.5,
+
+        gender: "Co-ed",
+
+        sharing: {
+            single: 12000,
+            double: 7000,
+            triple: 5000
+        },
+
+        amenities: [
+            "Wi-Fi",
+            "AC",
+            "Food",
+            "Power Backup"
+        ],
+
+        foodAvailable: true,
+        acAvailable: true,
+        attachedBathroom: false,
+        laundry: false,
+        parking: false,
+
+        rating: 4.3,
+
+        image: "assets/images/room2.jpg",
+
+        source: "Public PG listing",
+
+        lastVerified: "2026-10-08"
+    },
+
+
+    {
+        id: "airoli-003",
+
+        name: "Airoli Boys PG",
+
+        city: "Navi Mumbai",
+        area: "Sector 3, Airoli",
+
+        college: "Datta Meghe College of Engineering",
+
+        distanceKm: 0.5,
+
+        gender: "Boys",
+
+        sharing: {
+            double: 5500,
+            triple: 4500
+        },
+
+        amenities: [
+            "Wi-Fi",
+            "Security"
+        ],
+
+        foodAvailable: false,
+        acAvailable: false,
+        attachedBathroom: false,
+        laundry: false,
+        parking: false,
+
+        rating: 4.0,
+
+        image: "assets/images/room3.jpg",
+
+        source: "Public PG listing",
+
+        lastVerified: "2026-10-08"
+    },
+
+
+    // ========================================================
+    // NERUL
+    // ========================================================
+
+    {
+        id: "nerul-001",
+
+        name: "Gopal's PG",
+
+        city: "Navi Mumbai",
+        area: "Nerul",
+
+        college: "SIES College of Arts, Science and Commerce",
+
+        distanceKm: 0.8,
+
+        gender: "Co-ed",
+
+        sharing: {
+            single: 10000,
+            double: 8500,
+            triple: 7000
+        },
+
+        amenities: [
+            "Wi-Fi"
+        ],
+
+        foodAvailable: false,
+        acAvailable: false,
+        attachedBathroom: false,
+        laundry: false,
+        parking: false,
+
+        rating: 4.6,
+
+        image: "assets/images/room1.jpg",
+
+        source: "MagicBricks",
+
+        lastVerified: "2026-10-08"
+    },
+
+
+    {
+        id: "nerul-002",
+
+        name: "Sarva Vidya Bhavan PG",
+
+        city: "Navi Mumbai",
+        area: "Nerul West",
+
+        college: "SIES College of Arts, Science and Commerce",
+
+        distanceKm: 1.3,
+
+        gender: "Boys",
+
+        sharing: {
+            double: 5500,
+            triple: 4600
+        },
+
+        amenities: [
+            "Wi-Fi",
+            "AC",
+            "Food",
+            "Laundry"
+        ],
+
+        foodAvailable: true,
+        acAvailable: true,
+        attachedBathroom: false,
+        laundry: true,
+        parking: false,
+
+        rating: 5.0,
+
+        image: "assets/images/room2.jpg",
+
+        source: "MagicBricks",
+
+        lastVerified: "2026-10-08"
+    },
+
+
+    {
+        id: "nerul-003",
+
+        name: "Nandanvan PG",
+
+        city: "Navi Mumbai",
+        area: "Nerul",
+
+        college: "SIES College of Arts, Science and Commerce",
+
+        distanceKm: 0.8,
+
+        gender: "Boys",
+
+        sharing: {
+            single: 8000,
+            double: 7000,
+            triple: 5500,
+            four: 4000
+        },
+
+        amenities: [
+            "Wi-Fi",
+            "Food"
+        ],
+
+        foodAvailable: true,
+        acAvailable: false,
+        attachedBathroom: false,
+        laundry: false,
+        parking: false,
+
+        rating: 4.2,
+
+        image: "assets/images/room3.jpg",
+
+        source: "MagicBricks",
+
+        lastVerified: "2026-10-08"
+    },
+
+
+    // ========================================================
+    // VIDYAVIHAR
+    // ========================================================
+
+    {
+        id: "vidyavihar-001",
+
+        name: "Vidyavihar Student PG",
+
+        city: "Mumbai",
+        area: "Vidyavihar",
+
+        college: "KJ Somaiya College of Engineering",
+
+        distanceKm: 0.9,
+
+        gender: "Boys",
+
+        sharing: {
+            double: 11000,
+            triple: 7500
+        },
+
+        amenities: [
+            "Wi-Fi",
+            "Cooking Allowed",
+            "Garden"
+        ],
+
+        foodAvailable: false,
+        acAvailable: false,
+        attachedBathroom: false,
+        laundry: false,
+        parking: false,
+
+        rating: 4.3,
+
+        image: "assets/images/room1.jpg",
+
+        source: "MagicBricks",
+
+        lastVerified: "2026-10-08"
+    }
+
 ];

@@ -731,55 +731,67 @@ if (contactForm) {
 
 function searchCollege() {
 
-    const college =
+    const collegeInput =
         document.getElementById("collegeSearch").value.trim();
 
     const roomType =
         document.getElementById("roomTypeSearch").value;
 
-    let url = "rooms.html?";
-
-    if (college) {
-        url += `college=${encodeURIComponent(college)}&`;
+    // Make sure the user entered something
+    if (!collegeInput) {
+        alert("Please enter your college name.");
+        return;
     }
 
-    if (roomType !== "all") {
-        url += `type=${encodeURIComponent(roomType)}`;
+    // Get our college data
+    const colleges = JSON.parse(
+        localStorage.getItem("colleges")
+    ) || [];
+
+    // Find the college entered by the user
+    const selectedCollege = colleges.find(function (college) {
+
+        return college.name
+            .toLowerCase()
+            .includes(collegeInput.toLowerCase());
+
+    });
+
+    // If college is not found
+    if (!selectedCollege) {
+
+        alert(
+            "College not found. Currently available colleges are:\n\n" +
+            "• Datta Meghe College of Engineering\n" +
+            "• SIES College of Arts, Science and Commerce\n" +
+            "• KJ Somaiya College of Engineering"
+        );
+
+        return;
     }
 
+    // Save the selected college
+    sessionStorage.setItem(
+        "selectedCollege",
+        JSON.stringify(selectedCollege)
+    );
+
+    // Build the URL
+    let url =
+        "rooms.html?collegeId=" +
+        encodeURIComponent(selectedCollege.id);
+
+    // Keep the selected room type if the user chooses one
+    if (roomType && roomType !== "all") {
+
+        url +=
+            "&type=" +
+            encodeURIComponent(roomType);
+
+    }
+
+    // Go to PG results page
     window.location.href = url;
-
-}
-// ========================================
-// FILTER ROOMS FROM HOME SEARCH
-// ========================================
-
-const roomCards =
-    document.querySelectorAll(".room-card");
-
-if (roomCards.length > 0) {
-
-    const params =
-        new URLSearchParams(window.location.search);
-
-    const selectedType =
-        params.get("type");
-
-    if (selectedType) {
-
-        roomCards.forEach(card => {
-
-            const roomType =
-                card.dataset.roomType;
-
-            if (roomType !== selectedType) {
-                card.style.display = "none";
-            }
-
-        });
-
-    }
-
 }
 // ========================================
 // USE CURRENT LOCATION
