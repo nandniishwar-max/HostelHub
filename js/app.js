@@ -729,70 +729,171 @@ if (contactForm) {
 // HOME PAGE ROOM SEARCH
 // ========================================
 
-function searchCollege() {
+function selectAndSearchCollege(collegeName) {
+    const searchInput = document.getElementById("collegeSearch");
+    if (searchInput) {
+        searchInput.value = collegeName;
+    }
+    searchCollege(collegeName);
+}
 
-    const collegeInput =
-        document.getElementById("collegeSearch").value.trim();
+function searchCollege(customQuery) {
+    const searchInput = document.getElementById("collegeSearch");
+    const rawInput = customQuery !== undefined ? customQuery : (searchInput ? searchInput.value : "");
+    const collegeInput = (rawInput || "").trim();
+    const roomTypeSelect = document.getElementById("roomTypeSearch");
+    const roomType = roomTypeSelect ? roomTypeSelect.value : "all";
+    const msgContainer = document.getElementById("heroSearchMessage") || document.getElementById("messageContainer");
 
-    const roomType =
-        document.getElementById("roomTypeSearch").value;
+    function displaySearchFeedback(message, type) {
+        if (msgContainer) {
+            const icon = type === "success" ? "✓" : type === "error" ? "⚠" : "ℹ";
+            msgContainer.innerHTML =
+                '<div class="alert alert-' + type + '">' +
+                    '<span class="alert-icon">' + icon + '</span>' +
+                    '<div style="flex: 1;">' + message + '</div>' +
+                '</div>';
+            msgContainer.style.display = "block";
+        } else {
+            if (type === "error" || type === "info") {
+                alert(message.replace(/<[^>]+>/g, ""));
+            }
+        }
+    }
 
-    // Make sure the user entered something
     if (!collegeInput) {
-        alert("Please enter your college name.");
+        displaySearchFeedback("Please enter your college name, abbreviation (e.g. DMCE, SIES, Somaiya), or area.", "info");
         return;
     }
 
-    // Get our college data
-    const colleges = JSON.parse(
-        localStorage.getItem("colleges")
-    ) || [];
+    // Load colleges with fallback to defaultColleges
+    let colleges = [];
+    if (typeof getData === "function") {
+        colleges = getData("colleges", typeof defaultColleges !== "undefined" ? defaultColleges : []);
+    } else {
+        try {
+            colleges = JSON.parse(localStorage.getItem("colleges")) || [];
+        } catch (e) {
+            colleges = [];
+        }
+    }
+    if ((!colleges || !colleges.length) && typeof defaultColleges !== "undefined") {
+        colleges = defaultColleges;
+    }
 
-    // Find the college entered by the user
-    const selectedCollege = colleges.find(function (college) {
+    if (!colleges || !colleges.length) {
+        displaySearchFeedback("Unable to load college directory. Please try again later.", "error");
+        return;
+    }
 
-        return college.name
-            .toLowerCase()
-            .includes(collegeInput.toLowerCase());
-
+    // Normalize query
+    const cleanQuery = collegeInput.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+    const queryWords = cleanQuery.split(" ").filter(function (w) {
+        return w.length > 0 && ["college", "of", "engineering", "arts", "science", "commerce", "the", "institute"].indexOf(w) === -1;
     });
 
-    // If college is not found
+    // Known aliases and abbreviations for supported colleges
+    const collegeAliases = {
+        "dmce": ["dmce", "datta meghe", "datta", "meghe", "airoli"],
+        "sies-nerul": ["sies", "sies nerul", "sies asc", "nerul", "sies college"],
+        "kj-somaiya": ["kj", "somaiya", "kj somaiya", "kjsce", "vidyavihar", "k j somaiya", "somaiya college"]
+    };
+
+    let selectedCollege = null;
+
+    // 1. Direct ID match
+    selectedCollege = colleges.find(function (c) {
+        return c.id.toLowerCase() === cleanQuery || c.id.toLowerCase() === collegeInput.toLowerCase();
+    });
+
+    // 2. Exact or substring match on college name
     if (!selectedCollege) {
+        selectedCollege = colleges.find(function (c) {
+            const nameNorm = c.name.toLowerCase().replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+            return nameNorm.indexOf(cleanQuery) !== -1 || cleanQuery.indexOf(nameNorm) !== -1;
+        });
+    }
 
-        alert(
-            "College not found. Currently available colleges are:\n\n" +
-            "• Datta Meghe College of Engineering\n" +
-            "• SIES College of Arts, Science and Commerce\n" +
-            "• KJ Somaiya College of Engineering"
+    // 3. Alias / abbreviation match
+    if (!selectedCollege) {
+        selectedCollege = colleges.find(function (c) {
+            const aliases = collegeAliases[c.id] || [];
+            return aliases.some(function (alias) {
+                return alias === cleanQuery || cleanQuery.indexOf(alias) !== -1 || alias.indexOf(cleanQuery) !== -1;
+            });
+        });
+    }
+
+    // 4. Token-based match on distinctive words
+    if (!selectedCollege && queryWords.length > 0) {
+        selectedCollege = colleges.find(function (c) {
+            const nameNorm = c.name.toLowerCase();
+            const areaNorm = (c.area || "").toLowerCase();
+            const cityNorm = (c.city || "").toLowerCase();
+            return queryWords.every(function (word) {
+                return nameNorm.indexOf(word) !== -1 || areaNorm.indexOf(word) !== -1 || cityNorm.indexOf(word) !== -1;
+            });
+        });
+    }
+
+    // 5. Area / city match fallback
+    if (!selectedCollege) {
+        selectedCollege = colleges.find(function (c) {
+            const areaNorm = (c.area || "").toLowerCase();
+            const cityNorm = (c.city || "").toLowerCase();
+            return areaNorm.indexOf(cleanQuery) !== -1 || cleanQuery.indexOf(areaNorm) !== -1 || cityNorm.indexOf(cleanQuery) !== -1;
+        });
+    }
+
+    if (!selectedCollege) {
+        const safeQuery = collegeInput.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const suggestionsHtml = colleges.map(function (c) {
+            const safeName = c.name.replace(/'/g, "\\'");
+            return '<button type="button" onclick="selectAndSearchCollege(\'' + safeName + '\')" ' +
+                'style="display:inline-block; margin: 4px 6px 4px 0; padding: 5px 12px; background: #fff; border: 1px solid #cbd5e1; border-radius: 16px; font-size: 0.82rem; cursor: pointer; color: #07549b; font-weight: 600;">' +
+                '📍 ' + c.name + ' (' + c.area + ')' +
+                '</button>';
+        }).join("");
+
+        displaySearchFeedback(
+            '<div>' +
+                '<strong>College not found.</strong> No matching supported college found for "<em>' + safeQuery + '</em>".' +
+                '<div style="margin-top: 6px; font-weight: 500;">Currently supported colleges:</div>' +
+                '<div style="margin-top: 6px;">' + suggestionsHtml + '</div>' +
+            '</div>',
+            'error'
         );
-
         return;
     }
 
-    // Save the selected college
-    sessionStorage.setItem(
-        "selectedCollege",
-        JSON.stringify(selectedCollege)
-    );
+    // College found!
+    if (searchInput) searchInput.value = selectedCollege.name;
+    sessionStorage.setItem("selectedCollege", JSON.stringify(selectedCollege));
 
-    // Build the URL
-    let url =
-        "rooms.html?collegeId=" +
-        encodeURIComponent(selectedCollege.id);
+    displaySearchFeedback('Found <strong>' + selectedCollege.name + '</strong>! Taking you to nearby accommodations...', 'success');
 
-    // Keep the selected room type if the user chooses one
+    let url = "rooms.html?collegeId=" + encodeURIComponent(selectedCollege.id);
     if (roomType && roomType !== "all") {
-
-        url +=
-            "&type=" +
-            encodeURIComponent(roomType);
-
+        url += "&type=" + encodeURIComponent(roomType);
     }
 
-    // Go to PG results page
-    window.location.href = url;
+    setTimeout(function () {
+        window.location.href = url;
+    }, 400);
 }
+
+// Attach Enter key listener to search input
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("collegeSearch");
+    if (searchInput) {
+        searchInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                searchCollege();
+            }
+        });
+    }
+});
 // ========================================
 // USE CURRENT LOCATION
 // ========================================
@@ -840,7 +941,7 @@ function useCurrentLocation() {
 const registerForm =
     document.getElementById("registerForm");
 
-if (registerForm) {
+if (registerForm && typeof handleRegister === "undefined") {
 
     registerForm.addEventListener("submit", function (event) {
 
@@ -864,13 +965,19 @@ if (registerForm) {
             return;
         }
         const user = {
+            id: Date.now(),
             name: name,
             email: email,
-            password: password
+            password: password,
+            role: "student"
         };
 
         localStorage.setItem(
             "hostelUser",
+            JSON.stringify(user)
+        );
+        localStorage.setItem(
+            "currentUser",
             JSON.stringify(user)
         );
 
@@ -888,7 +995,7 @@ if (registerForm) {
 const loginForm =
     document.getElementById("loginForm");
 
-if (loginForm) {
+if (loginForm && typeof handleLogin === "undefined") {
 
     loginForm.addEventListener("submit", function (event) {
 
@@ -900,10 +1007,19 @@ if (loginForm) {
         const password =
             document.getElementById("loginPassword").value;
 
-        const savedUser =
+        let savedUser =
+            JSON.parse(
+                localStorage.getItem("currentUser")
+            ) ||
             JSON.parse(
                 localStorage.getItem("hostelUser")
             );
+
+        if (!savedUser && typeof defaultUsers !== "undefined") {
+            savedUser = defaultUsers.find(function (u) {
+                return u.email.toLowerCase() === email.toLowerCase() && u.password === password;
+            });
+        }
 
         if (!savedUser) {
 
@@ -913,7 +1029,7 @@ if (loginForm) {
         }
 
         if (
-            email === savedUser.email &&
+            email.toLowerCase() === savedUser.email.toLowerCase() &&
             password === savedUser.password
         ) {
 
@@ -921,10 +1037,22 @@ if (loginForm) {
                 "hostelLoggedIn",
                 "true"
             );
+            localStorage.setItem(
+                "currentUser",
+                JSON.stringify(savedUser)
+            );
+            localStorage.setItem(
+                "hostelUser",
+                JSON.stringify(savedUser)
+            );
 
             alert("Login successful!");
 
-            window.location.href = "dashboard.html";
+            if (savedUser.role === "admin") {
+                window.location.href = "admin/dashboard.html";
+            } else {
+                window.location.href = "dashboard.html";
+            }
 
         } else {
 
@@ -941,22 +1069,28 @@ if (loginForm) {
 
 function logoutUser() {
 
+    localStorage.removeItem("currentUser");
     localStorage.removeItem("hostelLoggedIn");
+    localStorage.removeItem("hostelUser");
 
     alert("You have been logged out.");
 
-    window.location.href = "login.html";
+    const base = typeof getBasePath === "function" ? getBasePath() : "";
+    window.location.href = base + "login.html";
 }
 // ========================================
 // DASHBOARD LOGIN PROTECTION
 // ========================================
 
-if (window.location.pathname.endsWith("dashboard.html")) {
+const normAppPath = (window.location.pathname || "").replace(/\\/g, "/");
+const isRootAppPage = !normAppPath.includes("/admin/") && !normAppPath.includes("/student/");
+
+if (isRootAppPage && normAppPath.endsWith("dashboard.html")) {
 
     const isLoggedIn =
-        localStorage.getItem("hostelLoggedIn");
+        localStorage.getItem("hostelLoggedIn") === "true" || !!localStorage.getItem("currentUser");
 
-    if (isLoggedIn !== "true") {
+    if (!isLoggedIn) {
 
         alert("Please login to access the dashboard.");
 
@@ -967,12 +1101,12 @@ if (window.location.pathname.endsWith("dashboard.html")) {
 // APPLICATIONS LOGIN PROTECTION
 // ========================================
 
-if (window.location.pathname.endsWith("applications.html")) {
+if (isRootAppPage && normAppPath.endsWith("applications.html")) {
 
     const isLoggedIn =
-        localStorage.getItem("hostelLoggedIn");
+        localStorage.getItem("hostelLoggedIn") === "true" || !!localStorage.getItem("currentUser");
 
-    if (isLoggedIn !== "true") {
+    if (!isLoggedIn) {
 
         alert("Please login to view applications.");
 
@@ -983,12 +1117,12 @@ if (window.location.pathname.endsWith("applications.html")) {
 // APPLY PAGE LOGIN PROTECTION
 // ========================================
 
-if (window.location.pathname.endsWith("apply.html")) {
+if (isRootAppPage && normAppPath.endsWith("apply.html")) {
 
     const isLoggedIn =
-        localStorage.getItem("hostelLoggedIn");
+        localStorage.getItem("hostelLoggedIn") === "true" || !!localStorage.getItem("currentUser");
 
-    if (isLoggedIn !== "true") {
+    if (!isLoggedIn) {
 
         alert("Please login to apply for a room.");
 
@@ -1005,6 +1139,9 @@ const dashboardUserName =
 if (dashboardUserName) {
 
     const savedUser =
+        JSON.parse(
+            localStorage.getItem("currentUser")
+        ) ||
         JSON.parse(
             localStorage.getItem("hostelUser")
         );
@@ -1024,9 +1161,9 @@ const loginStatus =
 if (loginStatus) {
 
     const isLoggedIn =
-        localStorage.getItem("hostelLoggedIn");
+        localStorage.getItem("hostelLoggedIn") === "true" || !!localStorage.getItem("currentUser");
 
-    if (isLoggedIn === "true") {
+    if (isLoggedIn) {
         loginStatus.textContent = "Logged In";
     } else {
         loginStatus.textContent = "Not Logged In";

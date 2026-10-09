@@ -4,7 +4,8 @@
 // ============================================================
 
 function toggleSidebar() {
-    document.getElementById("sidebar").classList.toggle("open");
+    var sb = document.getElementById("sidebar");
+    if (sb) sb.classList.toggle("open");
 }
 
 function initAdminPage() {

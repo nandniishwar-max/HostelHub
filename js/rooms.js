@@ -8,11 +8,25 @@ document.addEventListener("DOMContentLoaded", function () {
     const collegeId = params.get("collegeId");
     const roomType = params.get("type");
 
-    const colleges =
-        JSON.parse(localStorage.getItem("colleges")) || [];
+    let colleges = [];
+    if (typeof getData === "function") {
+        colleges = getData("colleges", typeof defaultColleges !== "undefined" ? defaultColleges : []);
+    } else {
+        try { colleges = JSON.parse(localStorage.getItem("colleges")) || []; } catch (e) {}
+    }
+    if ((!colleges || !colleges.length) && typeof defaultColleges !== "undefined") {
+        colleges = defaultColleges;
+    }
 
-    const allPGs =
-        JSON.parse(localStorage.getItem("pgs")) || [];
+    let allPGs = [];
+    if (typeof getData === "function") {
+        allPGs = getData("pgs", typeof defaultPGs !== "undefined" ? defaultPGs : []);
+    } else {
+        try { allPGs = JSON.parse(localStorage.getItem("pgs")) || []; } catch (e) {}
+    }
+    if ((!allPGs || !allPGs.length) && typeof defaultPGs !== "undefined") {
+        allPGs = defaultPGs;
+    }
 
     let selectedCollege = null;
 
@@ -22,8 +36,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (collegeId) {
         selectedCollege = colleges.find(function (college) {
-            return college.id === collegeId;
+            return college.id.toLowerCase() === collegeId.toLowerCase();
         });
+
+        if (!selectedCollege) {
+            try {
+                const sessionCollege = JSON.parse(sessionStorage.getItem("selectedCollege"));
+                if (sessionCollege && sessionCollege.id.toLowerCase() === collegeId.toLowerCase()) {
+                    selectedCollege = sessionCollege;
+                }
+            } catch (e) {}
+        }
     }
 
     // ------------------------------------------------------------

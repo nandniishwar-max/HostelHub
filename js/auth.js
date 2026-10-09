@@ -39,6 +39,8 @@ function requireAuth(role) {
 
 function logoutUser() {
     localStorage.removeItem("currentUser");
+    localStorage.removeItem("hostelLoggedIn");
+    localStorage.removeItem("hostelUser");
     window.location.href = getBasePath() + "login.html";
 }
 
@@ -96,9 +98,35 @@ function handleLogin(event) {
     var users = getData("users", defaultUsers);
     var user  = null;
     for (var i = 0; i < users.length; i++) {
-        if (users[i].email === email && users[i].password === password) {
+        if (users[i].email && users[i].email.toLowerCase() === email.toLowerCase() && users[i].password === password) {
             user = users[i];
             break;
+        }
+    }
+
+    // Fallback: check if registered via hostelUser
+    if (!user) {
+        var rawHostelUser = localStorage.getItem("hostelUser");
+        if (rawHostelUser) {
+            try {
+                var legacy = JSON.parse(rawHostelUser);
+                if (legacy.email && legacy.email.toLowerCase() === email.toLowerCase() && legacy.password === password) {
+                    user = {
+                        id: legacy.id || Date.now(),
+                        name: legacy.name || "User",
+                        email: legacy.email,
+                        password: legacy.password,
+                        role: legacy.role || (email.toLowerCase().includes("admin") ? "admin" : "student"),
+                        phone: legacy.phone || "",
+                        college: legacy.college || "",
+                        address: legacy.address || "",
+                        roomId: null,
+                        joinDate: new Date().toISOString().split("T")[0]
+                    };
+                    users.push(user);
+                    saveData("users", users);
+                }
+            } catch (e) {}
         }
     }
 
@@ -112,6 +140,8 @@ function handleLogin(event) {
     }
 
     localStorage.setItem("currentUser", JSON.stringify(user));
+    localStorage.setItem("hostelLoggedIn", "true");
+    localStorage.setItem("hostelUser", JSON.stringify(user));
     showMessage("Login successful! Redirecting...", "success");
 
     var base = getBasePath();
@@ -180,6 +210,7 @@ function handleRegister(event) {
 
     users.push(newUser);
     saveData("users", users);
+    localStorage.setItem("hostelUser", JSON.stringify(newUser));
 
     showMessage("Account created! Redirecting to login...", "success");
     setTimeout(function () {

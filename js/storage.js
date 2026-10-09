@@ -90,7 +90,7 @@ function showMessage(message, type, targetId) {
 // "" otherwise (root pages).
 
 function getBasePath() {
-    var path = window.location.pathname;
+    var path = (window.location.pathname || "").replace(/\\/g, "/");
     if (path.indexOf("/student/") !== -1 || path.indexOf("/admin/") !== -1) {
         return "../";
     }
@@ -135,6 +135,8 @@ function getPriorityBadgeHTML(priority) {
 function resetDemoData() {
     if (!confirm("Reset all demo data to default? This cannot be undone.")) return;
     localStorage.removeItem("currentUser");
+    localStorage.removeItem("hostelLoggedIn");
+    localStorage.removeItem("hostelUser");
     initializeData(true);
     alert("Demo data reset! Please log in again.");
     window.location.href = getBasePath() + "login.html";

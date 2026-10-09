@@ -192,7 +192,7 @@
             🏠 HostelHub
         </div>
 
-        <div class="sidebar-user">
+        <div class="sidebar-user" id="sidebarUser">
             <strong>Hostel Owner</strong>
         </div>
 
@@ -230,6 +230,12 @@
                 🏠 My Hostels
             </a>
 
+            <a href="booking.html" class="sidebar-link">
+                📋 Bookings
+            </a>
+
+            <button onclick="logoutUser()" class="sidebar-link sidebar-logout">🚪 Logout</button>
+
         </nav>
 
     </aside>
@@ -260,8 +266,13 @@
 
 </div>
 
-
+<script src="../js/data.js"></script>
+<script src="../js/storage.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/admin.js"></script>
 <script>
+
+requireAuth("admin");
 
 function toggleSidebar() {
     const sidebar = document.getElementById("sidebar");
